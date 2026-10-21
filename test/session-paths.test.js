@@ -64,28 +64,28 @@ function mkSession(home, base, ws, sid, name, mtimeMs = T0) {
 
 describe('extraSessionBases / sessionBases(配置驱动的额外基座)', () => {
   it('未配置 ⇒ 空 ⇒ 只剩 $DSH_HOME 与 ~/.dsh 两个通用基座', () => {
-    expect(extraSessionBases({ home: '/H', sessionBases: null })).toEqual([])
-    expect(sessionBases({ home: '/H', dshHome: null, sessionBases: null })).toEqual([join('/H', '.dsh')])
-    expect(sessionRoots({ home: '/H', dshHome: null, sessionBases: null })).toEqual([join('/H', '.dsh', 'sessions')])
+    expect(extraSessionBases({ home: resolve('/H'), sessionBases: null })).toEqual([])
+    expect(sessionBases({ home: resolve('/H'), dshHome: null, sessionBases: null })).toEqual([join(resolve('/H'), '.dsh')])
+    expect(sessionRoots({ home: resolve('/H'), dshHome: null, sessionBases: null })).toEqual([join(resolve('/H'), '.dsh', 'sessions')])
   })
 
   it('逗号分隔:去空白、丢空项、去重;`~` 按注入的 home 展开,绝对路径原样', () => {
-    const opts = { home: '/H', sessionBases: ` /A , ${EXTRA} ,${EXTRA},, /A ` }
-    expect(extraSessionBases(opts)).toEqual(['/A', join('/H', EXTRA_NAME)])
+    const opts = { home: resolve('/H'), sessionBases: ` /A , ${EXTRA} ,${EXTRA},, /A ` }
+    expect(extraSessionBases(opts)).toEqual([resolve('/A'), join(resolve('/H'), EXTRA_NAME)])
   })
 
   it('顺序即优先级:$DSH_HOME 居首,配置基座次之,~/.dsh 兜底', () => {
-    expect(sessionBases({ home: '/H', dshHome: '/X', sessionBases: `/A,${EXTRA}` }))
-      .toEqual(['/X', '/A', join('/H', EXTRA_NAME), join('/H', '.dsh')])
+    expect(sessionBases({ home: resolve('/H'), dshHome: resolve('/X'), sessionBases: `/A,${EXTRA}` }))
+      .toEqual([resolve('/X'), resolve('/A'), join(resolve('/H'), EXTRA_NAME), join(resolve('/H'), '.dsh')])
   })
 
   it(`默认读 process.env.${SESSION_BASES_ENV}(显式不传 sessionBases)`, () => {
     const prev = process.env[SESSION_BASES_ENV]
     try {
       process.env[SESSION_BASES_ENV] = `/E1,${EXTRA}`
-      expect(extraSessionBases({ home: '/H' })).toEqual(['/E1', join('/H', EXTRA_NAME)])
+      expect(extraSessionBases({ home: resolve('/H') })).toEqual([resolve('/E1'), join(resolve('/H'), EXTRA_NAME)])
       process.env[SESSION_BASES_ENV] = '   '
-      expect(extraSessionBases({ home: '/H' })).toEqual([])
+      expect(extraSessionBases({ home: resolve('/H') })).toEqual([])
     } finally {
       if (prev === undefined) delete process.env[SESSION_BASES_ENV]
       else process.env[SESSION_BASES_ENV] = prev
@@ -95,21 +95,21 @@ describe('extraSessionBases / sessionBases(配置驱动的额外基座)', () => 
 
 describe('sessionRoots / activeSessionsRoot', () => {
   it('候选顺序:$DSH_HOME 优先,配置基座次之,旧 home 兜底(有序去重)', () => {
-    expect(sessionRoots({ home: '/H', dshHome: '/X', sessionBases: EXTRA })).toEqual([
-      '/X/sessions',
-      join('/H', EXTRA_NAME, 'sessions'),
-      join('/H', '.dsh', 'sessions'),
+    expect(sessionRoots({ home: resolve('/H'), dshHome: resolve('/X'), sessionBases: EXTRA })).toEqual([
+      resolve('/X/sessions'),
+      join(resolve('/H'), EXTRA_NAME, 'sessions'),
+      join(resolve('/H'), '.dsh', 'sessions'),
     ])
-    expect(sessionRoots({ home: '/H', dshHome: null, sessionBases: EXTRA })).toEqual([
-      join('/H', EXTRA_NAME, 'sessions'),
-      join('/H', '.dsh', 'sessions'),
+    expect(sessionRoots({ home: resolve('/H'), dshHome: null, sessionBases: EXTRA })).toEqual([
+      join(resolve('/H'), EXTRA_NAME, 'sessions'),
+      join(resolve('/H'), '.dsh', 'sessions'),
     ])
   })
 
   it('DSH_HOME 与旧 home 同为一个目录时去重', () => {
-    expect(sessionRoots({ home: '/H', dshHome: '/H/.dsh', sessionBases: EXTRA })).toEqual([
-      join('/H', '.dsh', 'sessions'),
-      join('/H', EXTRA_NAME, 'sessions'),
+    expect(sessionRoots({ home: resolve('/H'), dshHome: resolve('/H/.dsh'), sessionBases: EXTRA })).toEqual([
+      join(resolve('/H'), '.dsh', 'sessions'),
+      join(resolve('/H'), EXTRA_NAME, 'sessions'),
     ])
   })
 
@@ -269,14 +269,14 @@ describe('badgeTableCandidates / resolveBadgeTablePath', () => {
   it('覆写 env 排第一;规范落点(插件数据家下)次之;基座旁兜底', () => {
     // 谱系标识表是**用户自备数据**,不是代码 ⇒ 代码里不得出现任何私有目录名。
     // 规范落点 = <pluginDataHome>/dsh-retrace/codes.json(与会话基座同源)。
-    const canonical = join(pluginDataHome({ home: '/H', dshHome: null, sessionBases: null }), 'dsh-retrace', 'codes.json')
-    const c = badgeTableCandidates({ home: '/H', override: '/O/t.json', dshHome: null, sessionBases: EXTRA })
-    expect(c[0]).toBe('/O/t.json')
+    const canonical = join(pluginDataHome({ home: resolve('/H'), dshHome: null, sessionBases: null }), 'dsh-retrace', 'codes.json')
+    const c = badgeTableCandidates({ home: resolve('/H'), override: resolve('/O/t.json'), dshHome: null, sessionBases: EXTRA })
+    expect(c[0]).toBe(resolve('/O/t.json'))
     expect(c[1]).toBe(canonical)
     expect(c).toEqual([...new Set(c)])
     // 配置基座旁的旧落点也在候选里(与会话基座同源,不是写死的目录名)
-    expect(c).toContain(join('/H', EXTRA_NAME, '会话短码表.json'))
-    expect(badgeTableCandidates({ home: '/H', override: null, dshHome: null, sessionBases: null })[0]).toBe(canonical)
+    expect(c).toContain(join(resolve('/H'), EXTRA_NAME, '会话短码表.json'))
+    expect(badgeTableCandidates({ home: resolve('/H'), override: null, dshHome: null, sessionBases: null })[0]).toBe(canonical)
   })
 
   it('取第一个存在的落点;**只读**(不写文件)', () => {
@@ -308,18 +308,18 @@ describe('badgeTableCandidates / resolveBadgeTablePath', () => {
 describe('pluginDataHome(插件数据家:与会话基座同源)', () => {
   it('① DSH_HOME 设了 → 逐字用它(含 ~ 展开/resolve,与官方 resolveDshHome 的 env 分支一致)', () => {
     // 向后兼容:设了 env 时行为与改前(官方 resolveDshHome)**逐字一致**。
-    expect(pluginDataHome({ home: '/H', dshHome: '/X', sessionBases: null })).toBe('/X')
+    expect(pluginDataHome({ home: resolve('/H'), dshHome: resolve('/X'), sessionBases: null })).toBe(resolve('/X'))
     // 目录不存在也照样返回(官方同样不检查存在性)
-    expect(pluginDataHome({ home: '/H', dshHome: join('/no', 'such', 'home'), sessionBases: null })).toBe('/no/such/home')
+    expect(pluginDataHome({ home: resolve('/H'), dshHome: join(resolve('/no'), 'such', 'home'), sessionBases: null })).toBe(resolve('/no/such/home'))
     // ~ / 相对路径规范化 = 官方 expandHomePath + resolve
-    expect(pluginDataHome({ home: '/H', dshHome: '~/x', sessionBases: null })).toBe(join(homedir(), 'x'))
-    expect(pluginDataHome({ home: '/H', dshHome: '~', sessionBases: null })).toBe(resolve(homedir()))
-    expect(pluginDataHome({ home: '/H', dshHome: 'rel-home', sessionBases: null })).toBe(resolve('rel-home'))
+    expect(pluginDataHome({ home: resolve('/H'), dshHome: '~/x', sessionBases: null })).toBe(join(homedir(), 'x'))
+    expect(pluginDataHome({ home: resolve('/H'), dshHome: '~', sessionBases: null })).toBe(resolve(homedir()))
+    expect(pluginDataHome({ home: resolve('/H'), dshHome: 'rel-home', sessionBases: null })).toBe(resolve('rel-home'))
     // 设了 env 就**不**看基座(即使两基座都在)
     const home = tmpRoot()
     mkSession(home, EXTRA_NAME, '--w--', 'extraone', V3)
     mkSession(home, '.dsh', '--w--', 'old1', V0)
-    expect(pluginDataHome({ home, dshHome: '/X', sessionBases: EXTRA })).toBe('/X')
+    expect(pluginDataHome({ home, dshHome: resolve('/X'), sessionBases: EXTRA })).toBe(resolve('/X'))
   })
 
   it('② 未设 DSH_HOME 且两基座都在 → 数据家 = 会话基座(配置基座),不再分裂到旧 home', () => {
@@ -364,10 +364,10 @@ describe('pluginDataHome(插件数据家:与会话基座同源)', () => {
   it('⑥ 默认读 process.env.DSH_HOME;空白 env = 未设(与官方 resolveDshHome 同)', () => {
     const prev = process.env.DSH_HOME
     try {
-      process.env.DSH_HOME = '/env/home'
-      expect(pluginDataHome({ home: '/H', sessionBases: null })).toBe('/env/home')
+      process.env.DSH_HOME = resolve('/env/home')
+      expect(pluginDataHome({ home: resolve('/H'), sessionBases: null })).toBe(resolve('/env/home'))
       process.env.DSH_HOME = '   '
-      expect(pluginDataHome({ home: '/H', sessionBases: null })).toBe(join('/H', '.dsh'))
+      expect(pluginDataHome({ home: resolve('/H'), sessionBases: null })).toBe(join(resolve('/H'), '.dsh'))
     } finally {
       if (prev === undefined) delete process.env.DSH_HOME
       else process.env.DSH_HOME = prev

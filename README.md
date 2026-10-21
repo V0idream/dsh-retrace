@@ -54,6 +54,23 @@ dsh plugin --profile desktop add dshmarket    # one time
 After the restart, hover any assistant reply → **↩ / ↻**; any user message → **✎**.
 Full steps in [📦 Installation](#-installation).
 
+### DSH 0.2 prereleases and Windows
+
+DSH `0.2.0-rc.2` uses Cordis 4.x. The peer ranges include the 0.2 release
+candidates explicitly, so a normal install does not require `--force` or
+`--legacy-peer-deps`. Windows restore backups use native basenames; Git rollback
+paths use Git's forward-slash format.
+
+To add editing without automatically pinning or renaming existing session titles,
+set `DSH_RETRACE_PIN_TITLES=0` **before starting DSH**. Automatic pinning remains
+on by default; explicit user-initiated renames still work. For example, PowerShell:
+
+```powershell
+$env:DSH_RETRACE_PIN_TITLES = '0'
+dsh web
+```
+
+
 ---
 
 ## 🛡️ Production-grade guarantees (all live in 0.4.x)
