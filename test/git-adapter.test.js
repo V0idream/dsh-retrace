@@ -5,6 +5,7 @@
  * a real git binary.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { join, resolve } from 'node:path'
 import { createGitAdapter, MINIMAL_GITIGNORE } from '../lib/git-adapter.js'
 
 /** Build a fake runner with canned per-argv-prefix responses. */
@@ -115,7 +116,7 @@ describe('git adapter init', () => {
     const outcome = await git.init('/work/plain')
     expect(outcome.ok).toBe(true)
     expect(outcome.headHash).toBe('deadbeef')
-    expect(writeText).toHaveBeenCalledWith('/work/plain/.gitignore', MINIMAL_GITIGNORE, undefined)
+    expect(writeText).toHaveBeenCalledWith(join(resolve('/work/plain'), '.gitignore'), MINIMAL_GITIGNORE, undefined)
     expect(command.mock.calls.map(([argv]) => argv[0])).toEqual(['init', 'add', 'commit', 'rev-parse', 'update-ref'])
   })
 

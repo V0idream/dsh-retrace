@@ -7,8 +7,12 @@ on:
 
 jobs:
   verify:
-    name: Syntax · build-sync · tests
-    runs-on: ubuntu-latest
+    name: Syntax · build-sync · tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 

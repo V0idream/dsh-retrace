@@ -49,6 +49,22 @@ dsh plugin --profile desktop add dshmarket    # 只需一次
 重启后，悬停任意助手回复 → **↩ / ↻**；任意用户消息 → **✎**。详细步骤见
 [📦 安装](#-安装)。
 
+### DSH 0.2 预览版与 Windows
+
+DSH `0.2.0-rc.2` 使用 Cordis 4.x。依赖范围显式包含 0.2 的预发布版本，
+正常安装无需 `--force` 或 `--legacy-peer-deps`。Windows 恢复备份使用原生文件名，
+Git 回滚路径使用 Git 要求的正斜杠。
+
+若只希望增加编辑功能，同时保留已有会话标题和自动标题生成，请在启动 DSH 前设置
+`DSH_RETRACE_PIN_TITLES=0`。默认仍启用自动标题固定；手动重命名功能不受影响。
+例如在 PowerShell 中运行：
+
+```powershell
+$env:DSH_RETRACE_PIN_TITLES = '0'
+dsh web
+```
+
+
 ---
 
 ## 🛡️ 生产级保证（0.4.x 全部已上线）
